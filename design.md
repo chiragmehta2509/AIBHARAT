@@ -28,6 +28,15 @@ graph TB
     I -.-> C
     I -.-> D
     I -.-> E
+    
+    J[GPS Tracking Module] --> A
+    K[Rewards Engine] --> F
+    L[Feedback System] --> C
+    L --> I
+    
+    G -.-> J
+    G -.-> K
+    G -.-> L
 ```
 
 **Layer Responsibilities:**
@@ -43,6 +52,9 @@ graph TB
 - **Data Storage Layer**: Persistent storage for images, models, and analysis results
 - **API Gateway**: RESTful interface for external integrations
 - **Model Management**: ML model versioning, training, and deployment pipeline
+- **GPS Tracking Module**: Location capture, validation, and geographic analysis
+- **Rewards Engine**: Points calculation, tier management, and incentive distribution
+- **Feedback System**: User rating collection, outcome tracking, and model improvement loop
 
 ## Components and Interfaces
 
@@ -58,6 +70,12 @@ graph TB
 - Validates image quality and resolution
 - Checks file size constraints
 - Ensures metadata completeness
+
+**GPSCapture**
+- Extracts GPS coordinates from image EXIF data
+- Validates latitude/longitude ranges (-90 to 90, -180 to 180)
+- Captures timestamp and altitude when available
+- Handles missing GPS data gracefully with fallback options
 
 ### Computer Vision Module Components
 
@@ -117,6 +135,78 @@ graph TB
 - Creates comprehensive PDF reports
 - Generates visualizations and charts
 - Formats data for different user types
+
+### GPS Tracking Module Components
+
+**LocationService**
+- Captures GPS coordinates from device or image metadata
+- Validates geographic coordinates
+- Geocodes coordinates to human-readable addresses
+- Stores location history for waste source tracking
+
+**GeographicAnalyzer**
+- Analyzes waste distribution patterns by region
+- Provides location-specific market insights
+- Generates heat maps of waste sources
+- Identifies regional fragrance production opportunities
+
+**PrivacyManager**
+- Manages user location privacy settings
+- Anonymizes location data when required
+- Implements location data retention policies
+- Provides opt-in/opt-out controls for location tracking
+
+### Rewards Engine Components
+
+**PointsCalculator**
+- Awards points based on image quality (1-10 points)
+- Grants bonus points for complete metadata (5 points)
+- Provides milestone bonuses for sustainability achievements
+- Calculates referral bonuses (50 points per successful referral)
+
+**TierManager**
+- Manages reward tiers (Bronze: 0-100, Silver: 101-500, Gold: 501-1000, Platinum: 1000+)
+- Tracks user progression through tiers
+- Unlocks tier-specific benefits and features
+- Sends tier upgrade notifications
+
+**RedemptionService**
+- Manages reward catalog (equipment discounts, cash vouchers, carbon credits)
+- Processes reward redemptions
+- Tracks redemption history
+- Integrates with payment and fulfillment systems
+
+**LeaderboardManager**
+- Maintains regional and global leaderboards
+- Updates rankings in real-time
+- Displays top contributors by various metrics
+- Implements fair ranking algorithms
+
+### Feedback System Components
+
+**RatingCollector**
+- Presents rating forms after analysis completion
+- Collects 5-star ratings with optional comments
+- Captures outcome feedback (actual yield, income, quality)
+- Timestamps all feedback submissions
+
+**FeedbackAnalyzer**
+- Aggregates feedback statistics
+- Identifies systematic errors and patterns
+- Flags low-rated analyses for expert review
+- Generates accuracy trend reports
+
+**ModelImprovementLoop**
+- Feeds user feedback into model retraining pipelines
+- Weights feedback by user reliability and expertise
+- Tracks model performance improvements over time
+- Implements A/B testing for model updates
+
+**FeedbackIncentivizer**
+- Awards bonus points for detailed feedback (10-20 points)
+- Encourages outcome reporting with rewards
+- Gamifies feedback submission
+- Tracks user feedback contribution history
 
 ## Data Models
 
@@ -214,6 +304,100 @@ graph TB
 }
 ```
 
+**LocationData**
+```
+{
+  imageId: string
+  coordinates: {
+    latitude: number
+    longitude: number
+    altitude: number (optional)
+    accuracy: number
+  }
+  address: {
+    country: string
+    state: string
+    district: string
+    locality: string
+  }
+  timestamp: datetime
+  source: enum [gps, exif, manual, ip_geolocation]
+  privacyLevel: enum [public, anonymized, private]
+}
+```
+
+**UserRewards**
+```
+{
+  userId: string
+  totalPoints: number
+  currentTier: enum [bronze, silver, gold, platinum]
+  tierProgress: {
+    currentPoints: number
+    nextTierThreshold: number
+    percentageComplete: number
+  }
+  pointsHistory: array[{
+    points: number
+    reason: string
+    timestamp: datetime
+    relatedImageId: string (optional)
+  }]
+  achievements: array[{
+    badgeId: string
+    badgeName: string
+    earnedAt: datetime
+    description: string
+  }]
+  redemptions: array[{
+    redemptionId: string
+    rewardType: string
+    pointsSpent: number
+    redeemedAt: datetime
+    status: enum [pending, fulfilled, cancelled]
+  }]
+}
+```
+
+**UserFeedback**
+```
+{
+  feedbackId: string
+  userId: string
+  analysisId: string
+  rating: number (1-5)
+  comment: string (optional)
+  outcomeData: {
+    actualYield: number (optional)
+    actualIncome: number (optional)
+    actualQuality: string (optional)
+    processingMethod: string (optional)
+  }
+  feedbackType: enum [recommendation_accuracy, prediction_accuracy, user_experience]
+  submittedAt: datetime
+  reviewStatus: enum [pending, reviewed, flagged]
+  pointsAwarded: number
+}
+```
+
+**Leaderboard**
+```
+{
+  leaderboardId: string
+  region: string
+  period: enum [daily, weekly, monthly, all_time]
+  rankings: array[{
+    rank: number
+    userId: string
+    userName: string (anonymized if privacy enabled)
+    totalPoints: number
+    totalSubmissions: number
+    co2Avoided: number
+  }]
+  lastUpdated: datetime
+}
+```
+
 ### Database Schema
 
 **Users Table**
@@ -240,6 +424,37 @@ graph TB
 - modelType, version
 - filePath, performance metrics
 - isActive, deployedAt
+
+**Locations Table**
+- id (primary key)
+- imageId (foreign key)
+- latitude, longitude, altitude
+- address (JSON)
+- timestamp, source, privacyLevel
+
+**Rewards Table**
+- id (primary key)
+- userId (foreign key)
+- totalPoints, currentTier
+- tierProgress (JSON)
+- pointsHistory (JSON)
+- achievements (JSON)
+- redemptions (JSON)
+
+**Feedback Table**
+- id (primary key)
+- userId (foreign key)
+- analysisId (foreign key)
+- rating, comment
+- outcomeData (JSON)
+- feedbackType, submittedAt
+- reviewStatus, pointsAwarded
+
+**Leaderboards Table**
+- id (primary key)
+- region, period
+- rankings (JSON)
+- lastUpdated
 
 ## Correctness Properties
 
@@ -305,6 +520,42 @@ graph TB
 *For any* API interaction, the system should provide RESTful endpoints following standard conventions, authenticate requests using API keys, return responses in valid JSON format, implement rate limiting to prevent abuse, and provide comprehensive OpenAPI documentation.
 **Validates: Requirements 10.1, 10.2, 10.3, 10.4, 10.5**
 
+### Property 16: GPS Location Capture and Validation
+*For any* image upload with available GPS data, the system should capture and store valid geographic coordinates (latitude: -90 to 90, longitude: -180 to 180), timestamp, and optional altitude, while respecting user privacy settings and allowing graceful handling when GPS is unavailable.
+**Validates: Requirements 11.1, 11.2, 11.3, 11.4, 11.7**
+
+### Property 17: Location-Based Insights
+*For any* analysis with valid location data, the system should provide region-specific fragrance market insights and include geographic distribution information in generated reports.
+**Validates: Requirements 11.5, 11.6**
+
+### Property 18: Rewards Points Calculation
+*For any* valid waste image submission, the system should award points based on image quality and metadata completeness, with bonus points for high-quality waste and successful analysis completion.
+**Validates: Requirements 12.1, 12.2**
+
+### Property 19: Rewards Tier Management
+*For any* user's accumulated points, the system should correctly assign reward tiers (Bronze: 0-100, Silver: 101-500, Gold: 501-1000, Platinum: 1000+), send notifications upon tier changes, and unlock appropriate tier-specific benefits.
+**Validates: Requirements 12.3, 12.4, 12.5**
+
+### Property 20: Rewards Redemption and Referrals
+*For any* reward redemption request, the system should validate sufficient points, process redemptions for available options (equipment discounts, cash vouchers, carbon credits), track redemption history, and award referral bonuses when applicable.
+**Validates: Requirements 12.6, 12.7**
+
+### Property 21: Leaderboards and Achievements
+*For any* user activity, the system should maintain accurate regional and global leaderboards, update rankings appropriately, and award achievement badges when sustainability milestones are reached.
+**Validates: Requirements 12.8, 12.9**
+
+### Property 22: Feedback Collection and Rating
+*For any* completed analysis, the system should provide feedback mechanisms allowing users to rate recommendations on a 5-star scale with optional comments, request outcome feedback, and store all feedback with associated analysis data.
+**Validates: Requirements 13.1, 13.2, 13.3, 13.4**
+
+### Property 23: Feedback-Driven Improvement
+*For any* submitted feedback, the system should flag negative ratings for expert review, use feedback data for model retraining, award bonus points for detailed feedback, and trigger alerts when systematic errors are detected.
+**Validates: Requirements 13.5, 13.6, 13.7, 13.9**
+
+### Property 24: Feedback Transparency and History
+*For any* user or system administrator, the system should display aggregate feedback statistics showing accuracy trends and provide users with access to their feedback history including past ratings and outcomes.
+**Validates: Requirements 13.8, 13.10**
+
 ## Error Handling
 
 The system implements comprehensive error handling across all layers:
@@ -345,6 +596,27 @@ The system implements comprehensive error handling across all layers:
 - Malformed requests return HTTP 400 with detailed validation error messages
 - Internal server errors return HTTP 500 with correlation IDs for debugging
 
+**GPS Tracking Error Handling:**
+- Missing GPS data allows image upload to proceed with location marked as unavailable
+- Invalid coordinates (out of range) return HTTP 400 with valid range specifications
+- GPS permission denied by user stores image without location data
+- Geocoding service failures fall back to coordinate-only storage
+- Privacy setting conflicts prevent location storage and notify user
+
+**Rewards Engine Error Handling:**
+- Points calculation errors default to minimum valid points with error logging
+- Tier progression failures maintain current tier and trigger manual review
+- Redemption failures (insufficient points, unavailable rewards) return HTTP 400 with clear messages
+- Leaderboard update failures trigger background retry with exponential backoff
+- Achievement badge assignment errors log failures without blocking user workflow
+
+**Feedback System Error Handling:**
+- Invalid rating values (outside 1-5 range) return HTTP 400 with valid range
+- Feedback submission failures retry automatically up to 3 times
+- Model retraining triggered by feedback handles failures gracefully with rollback
+- Feedback analysis errors flag data for manual review without blocking submissions
+- Missing outcome data allows partial feedback submission with optional fields marked
+
 ## Testing Strategy
 
 The system employs a comprehensive dual testing approach combining unit tests and property-based tests to ensure correctness and reliability.
@@ -373,6 +645,9 @@ The system employs a comprehensive dual testing approach combining unit tests an
 - Historical fragrance production data for ML model validation
 - Mock market data APIs for economic prediction testing
 - Anonymized real-world waste images for integration testing
+- Synthetic GPS coordinates covering global geographic ranges
+- Mock user reward data for tier progression testing
+- Simulated feedback datasets for model improvement validation
 
 **Continuous Testing Pipeline:**
 - Property tests run on every commit with full 100-iteration cycles
@@ -380,6 +655,9 @@ The system employs a comprehensive dual testing approach combining unit tests an
 - Integration tests run on staging environment with real data subsets
 - Performance tests execute nightly with trend analysis
 - Model accuracy tests run weekly against held-out validation datasets
+- GPS validation tests verify coordinate ranges and privacy compliance
+- Rewards calculation tests ensure point accuracy and tier thresholds
+- Feedback loop tests validate model improvement from user input
 
 **Test Coverage Requirements:**
 - Minimum 90% code coverage for core business logic
@@ -387,3 +665,6 @@ The system employs a comprehensive dual testing approach combining unit tests an
 - Property test coverage for all correctness properties
 - Integration test coverage for all API endpoints
 - End-to-end test coverage for critical user workflows
+- GPS privacy and security test coverage at 100%
+- Rewards calculation accuracy tests with edge cases
+- Feedback system integration tests with ML retraining pipeline

@@ -139,3 +139,50 @@ The Agro-Waste to Fragrance AI system is an AI-powered platform that analyzes ag
 3. WHEN API responses are generated, THE System SHALL return results in JSON format
 4. THE System SHALL implement rate limiting to prevent abuse
 5. WHEN API documentation is requested, THE System SHALL provide comprehensive OpenAPI specifications
+
+### Requirement 11: GPS Location Tracking
+
+**User Story:** As a farmer, I want to automatically capture the location where waste images are taken, so that the system can provide location-specific recommendations and track waste sources geographically.
+
+#### Acceptance Criteria
+
+1. WHEN a user uploads an image, THE System SHALL capture GPS coordinates from the device
+2. WHEN GPS data is available, THE System SHALL store latitude, longitude, and timestamp with the image
+3. WHEN location data is captured, THE System SHALL validate coordinates are within valid geographic ranges
+4. WHEN GPS is unavailable, THE System SHALL allow manual location entry or proceed without location data
+5. THE System SHALL use location data to provide region-specific fragrance market insights
+6. WHEN generating reports, THE System SHALL include geographic distribution maps of waste sources
+7. THE System SHALL respect user privacy settings for location data sharing
+
+### Requirement 12: Rewards and Incentive System
+
+**User Story:** As a farmer, I want to earn rewards for contributing waste data and adopting sustainable practices, so that I am motivated to participate actively in the platform.
+
+#### Acceptance Criteria
+
+1. WHEN a user uploads a valid waste image, THE System SHALL award points based on image quality and completeness
+2. WHEN analysis is completed successfully, THE System SHALL grant bonus points for high-quality waste submissions
+3. WHEN users reach point thresholds, THE System SHALL unlock reward tiers (Bronze, Silver, Gold, Platinum)
+4. WHEN rewards are earned, THE System SHALL notify users through in-app notifications and email
+5. THE System SHALL provide a rewards dashboard showing current points, tier status, and available redemptions
+6. WHEN users redeem rewards, THE System SHALL offer options including discounts on processing equipment, cash vouchers, or carbon credits
+7. WHEN users refer others to the platform, THE System SHALL award referral bonuses
+8. THE System SHALL track and display leaderboards for top contributors by region
+9. WHEN sustainability milestones are achieved (e.g., 1 ton CO₂ avoided), THE System SHALL award achievement badges
+
+### Requirement 13: User Feedback and Rating System
+
+**User Story:** As a user, I want to provide feedback on recommendations and rate the accuracy of predictions, so that the system can improve over time and better serve my needs.
+
+#### Acceptance Criteria
+
+1. WHEN analysis results are presented, THE System SHALL provide a feedback form for users to rate recommendation accuracy
+2. WHEN users implement recommendations, THE System SHALL request outcome feedback (actual yield, income, quality)
+3. WHEN feedback is submitted, THE System SHALL store it with the associated analysis for model improvement
+4. THE System SHALL allow users to rate recommendations on a 5-star scale with optional comments
+5. WHEN negative feedback is received, THE System SHALL flag the analysis for expert review
+6. THE System SHALL use feedback data to retrain and improve ML models automatically
+7. WHEN users provide detailed feedback, THE System SHALL award bonus reward points
+8. THE System SHALL display aggregate feedback statistics to show system accuracy trends
+9. WHEN feedback indicates systematic errors, THE System SHALL trigger alerts to data science teams
+10. THE System SHALL provide a feedback history view showing user's past ratings and outcomes
